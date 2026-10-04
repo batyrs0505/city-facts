@@ -8,7 +8,8 @@ cities = {
     "astana": "Astana is the capital of Kazakhstan.",
     "shymkent": "Shymkent is one of the oldest cities in Kazakhstan.",
     "london": "London is the capital of the United Kingdom.",
-    "tokyo": "Tokyo is the capital of Japan."
+    "tokyo": "Tokyo is the capital of Japan.",
+    "paris": "Paris is the capital of France."
 }
 
 
