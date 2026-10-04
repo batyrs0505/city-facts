@@ -4,6 +4,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+import unittest
 
 
 def get_free_port():
@@ -12,75 +13,63 @@ def get_free_port():
         return s.getsockname()[1]
 
 
-def wait_for_server(port, process):
-    url = f"http://127.0.0.1:{port}/healthz"
+class CityFactsTests(unittest.TestCase):
 
-    for _ in range(50):
-        if process.poll() is not None:
-            return False
+    @classmethod
+    def setUpClass(cls):
+        cls.port = get_free_port()
 
-        try:
-            urllib.request.urlopen(url, timeout=1)
-            return True
-        except Exception:
-            time.sleep(0.1)
+        env = os.environ.copy()
+        env["PORT"] = str(cls.port)
 
-    return False
+        cls.process = subprocess.Popen(
+            [sys.executable, "app.py"],
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+
+        for _ in range(50):
+            if cls.process.poll() is not None:
+                raise RuntimeError("Server failed to start")
+
+            try:
+                urllib.request.urlopen(
+                    f"http://127.0.0.1:{cls.port}/healthz",
+                    timeout=1
+                )
+                return
+            except Exception:
+                time.sleep(0.1)
+
+        raise RuntimeError("Server did not start")
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.process.terminate()
+        cls.process.wait()
+
+    def get(self, path):
+        url = f"http://127.0.0.1:{self.port}{path}"
+
+        with urllib.request.urlopen(url, timeout=2) as response:
+            return response.status, response.read().decode()
+
+    def test_root(self):
+        status, body = self.get("/")
+        self.assertEqual(status, 200)
+        self.assertIn("City Facts API", body)
+
+    def test_health(self):
+        status, body = self.get("/healthz")
+        self.assertEqual(status, 200)
+        self.assertIn("ok", body)
+
+    def test_city(self):
+        status, body = self.get("/city/almaty")
+        self.assertEqual(status, 200)
+        self.assertIn("Almaty", body)
 
 
-def get(path, port):
-    url = f"http://127.0.0.1:{port}{path}"
-
-    with urllib.request.urlopen(url, timeout=2) as response:
-        return response.status, response.read().decode()
-
-
-port = get_free_port()
-
-env = os.environ.copy()
-env["PORT"] = str(port)
-
-process = subprocess.Popen(
-    [sys.executable, "app.py"],
-    env=env,
-    stdout=subprocess.DEVNULL,
-    stderr=subprocess.DEVNULL
-)
-
-passed = 0
-total = 3
-
-try:
-    if not wait_for_server(port, process):
-        print(f"TESTS: 0/{total}")
-        sys.exit(1)
-
-    # Test 1: root endpoint
-    status, body = get("/", port)
-    assert status == 200
-    assert "City Facts API" in body
-    passed += 1
-
-    # Test 2: health endpoint
-    status, body = get("/healthz", port)
-    assert status == 200
-    assert "ok" in body
-    passed += 1
-
-    # Test 3: city endpoint
-    status, body = get("/city/almaty", port)
-    assert status == 200
-    assert "Almaty" in body
-    assert "Kazakhstan" in body
-    passed += 1
-
-    print(f"TESTS: {passed}/{total}")
-
-except Exception as e:
-    print(f"TESTS: {passed}/{total}")
-    print(f"Test failed: {e}")
-    sys.exit(1)
-
-finally:
-    process.terminate()
-    process.wait()
+if __name__ == "__main__":
+    unittest.main()
