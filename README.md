@@ -1,6 +1,6 @@
 # City Facts API
 
-A small HTTP API that returns a fact about a city.
+This service provides a small HTTP API that returns facts about cities.
 
 ## Run
 
