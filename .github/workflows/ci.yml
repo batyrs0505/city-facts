@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]            # 1. your default branch
+  pull_request:
+
+permissions:
+  contents: read                  # 2. tests only need to READ the code
+
+defaults:
+  run:
+    shell: bash                   # pipefail - the green lie from the lecture
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run tests                    # 3. the name you want to see in the Actions tab
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # 4. set up YOUR language - see the table below.
+      #    Delete this step if you need nothing beyond what the runner has.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - run: ./scripts/test.sh                 # 5. the ONE command that runs your tests
