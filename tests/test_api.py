@@ -67,7 +67,7 @@ class CityFactsTests(unittest.TestCase):
 
     def test_city(self):
         status, body = self.get("/city/almaty")
-        self.assertEqual(status, 201)
+        self.assertEqual(status, 200)
         self.assertIn("Almaty", body)
 
 
