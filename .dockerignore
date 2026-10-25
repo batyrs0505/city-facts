@@ -1,0 +1,20 @@
+# Version control and CI files: the image does not need them
+.git
+.github
+# Secrets and local settings: never inside an image
+.env
+.env.*
+*.pem
+*.key
+# Dependencies and build output: the image builds its own
+.venv
+venv
+node_modules
+**/__pycache__
+build
+target
+# Editor and OS clutter
+.vscode
+.idea
+.DS_Store
+*.log
