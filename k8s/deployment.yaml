@@ -18,7 +18,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: app
-          image: ghcr.io/batyrs0505/city-facts:1044f8646664e8b868b78092b9d09d294d15f085
+          image: ghcr.io/batyrs0505/city-facts:4b4c033b5f87c1f7ca20db2188e0c522f3cf11ee
           ports:
             - name: http
               containerPort: 8080
